@@ -1,6 +1,11 @@
 # Claude Code internal
 .claude/
 
+# Documentación (local only — no subir al repo)
+Documentación/
+Documentación Técnica/
+deuda_tecnica/
+
 # Python
 __pycache__/
 *.py[cod]
