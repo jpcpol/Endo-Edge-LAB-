@@ -1,4 +1,5 @@
-Endo-Edge LAB+
+# Endo-Edge LAB+
+
 Sistema ciberfísico de diagnóstico temprano y seguimiento continuo de enfermedades crónicas
 
 Endo-Edge LAB+ combina biosensores wearable continuos con inferencia de inteligencia artificial en el borde (Edge AI) para mapear en tiempo real la interacción dinámica entre vías hormonales, metabólicas y celulares — lo que el proyecto denomina "simbiosis endocrina celular" — con el objetivo de detectar firmas patológicas años antes de su manifestación clínica tradicional.
@@ -16,10 +17,10 @@ Nodo 3 — Edge de laboratorio
 Ingesta de resultados LAB en HL7 FHIR R4 desde LIS de laboratorios (API directa / SFTP cifrado / OCR fallback). Panel de 16 analitos con códigos LOINC.
 
 Outputs principales
-Output	Descripción
-DSS	Symbiotic Drift Score (0–100): desviación del ecosistema endocrino del patrón personal aprendido
-RTM	Risk Trend Marker (5 zonas): tendencia temporal del DSS en pts/semana
-Catálogo LAB Fase I	Probabilidades diferenciales para 10 patologías metabólicas/endocrinas
+Output Descripción
+DSS Symbiotic Drift Score (0–100): desviación del ecosistema endocrino del patrón personal aprendido
+RTM Risk Trend Marker (5 zonas): tendencia temporal del DSS en pts/semana
+Catálogo LAB Fase I Probabilidades diferenciales para 10 patologías metabólicas/endocrinas
 Objetivos de rendimiento: AUROC ≥ 0.88 (LAB), ≥ 0.85 (WEAR), ≥ 0.90 (integrado).
 
 Estudio clínico
@@ -37,3 +38,5 @@ Interoperabilidad     HL7 FHIR R4 · LOINC · ICD-10 · MessagePack
 Titularidad intelectual
 Juan Pablo Chancay (Aural-Syncro) — IP, arquitectura, firmware, algoritmos (PI-001 v1.3, DNDA Marzo 2026)
 Dra. Alejandra Cicchitti — Co-titular del Catálogo Diferencial de Probabilidades y Protocolo de Interpretación del RTM
+
+Contacto: <juanpablo.chancay@aural-syncro.com.ar> - <www.aural-syncro.com.ar>
