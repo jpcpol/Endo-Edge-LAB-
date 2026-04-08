@@ -1,0 +1,400 @@
+
+<style>
+.sim-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 14px;margin-bottom:8px}
+.sim-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
+.sim-val{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.sim-unit{font-size:12px;color:var(--color-text-tertiary);margin-left:3px}
+.zone{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.z1{background:#EAF3DE;color:#27500A}.z2{background:#E1F5EE;color:#085041}
+.z3{background:#FAEEDA;color:#633806}.z4{background:#FCEBEB;color:#791F1F}.z5{background:#F7C1C1;color:#501313}
+.sig-row{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12px}
+.sig-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sig-bar-wrap{flex:1;height:6px;background:var(--color-border-tertiary);border-radius:3px;overflow:hidden}
+.sig-bar{height:100%;border-radius:3px;transition:width 0.4s}
+.ctrl-row{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--color-text-secondary);margin:6px 0}
+.ctrl-row input[type=range]{flex:1}
+.ctrl-val{min-width:36px;text-align:right;font-weight:500;color:var(--color-text-primary)}
+canvas{width:100%;display:block}
+.tab-row{display:flex;gap:6px;margin-bottom:10px}
+.tab{padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary)}
+.tab.active{background:var(--color-background-info);color:var(--color-text-info);border-color:transparent}
+.dqi-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:12px;border:0.5px solid var(--color-border-tertiary)}
+</style>
+
+<div style="padding:4px 0 10px">
+
+<!-- CONTROLES -->
+<div class="sim-card">
+  <div class="sim-label" style="margin-bottom:8px;font-weight:500;font-size:13px">Configuración del escenario clínico</div>
+  <div class="ctrl-row">
+    <span style="min-width:130px">Resistencia insulínica</span>
+    <input type="range" id="ir" min="0" max="100" value="30" oninput="update()">
+    <span class="ctrl-val" id="ir-v">30%</span>
+  </div>
+  <div class="ctrl-row">
+    <span style="min-width:130px">Estrés crónico (cortisol)</span>
+    <input type="range" id="stress" min="0" max="100" value="25" oninput="update()">
+    <span class="ctrl-val" id="stress-v">25%</span>
+  </div>
+  <div class="ctrl-row">
+    <span style="min-width:130px">Inflamación sistémica</span>
+    <input type="range" id="inflam" min="0" max="100" value="20" oninput="update()">
+    <span class="ctrl-val" id="inflam-v">20%</span>
+  </div>
+  <div class="ctrl-row">
+    <span style="min-width:130px">Cobertura lab. histórica</span>
+    <input type="range" id="labcov" min="0" max="100" value="80" oninput="update()">
+    <span class="ctrl-val" id="labcov-v">80%</span>
+  </div>
+  <div class="ctrl-row">
+    <span style="min-width:130px">Calidad señal wearable</span>
+    <input type="range" id="wq" min="20" max="100" value="90" oninput="update()">
+    <span class="ctrl-val" id="wq-v">90%</span>
+  </div>
+</div>
+
+<!-- SEÑALES EN TIEMPO REAL -->
+<div class="sim-card">
+  <div class="sim-label" style="font-weight:500;font-size:13px;margin-bottom:8px">Pipeline WEAR — señales en tiempo real</div>
+  <div class="sig-row"><div class="sig-dot" style="background:#1D9E75"></div><span style="min-width:90px">HRV (RMSSD)</span><div class="sig-bar-wrap"><div class="sig-bar" id="b-hrv" style="background:#1D9E75"></div></div><span class="ctrl-val" id="v-hrv">—</span><span class="sig-unit">ms</span></div>
+  <div class="sig-row"><div class="sig-dot" style="background:#185FA5"></div><span style="min-width:90px">Glucosa CGM</span><div class="sig-bar-wrap"><div class="sig-bar" id="b-glc" style="background:#185FA5"></div></div><span class="ctrl-val" id="v-glc">—</span><span class="sig-unit">mg/dL</span></div>
+  <div class="sig-row"><div class="sig-dot" style="background:#BA7517"></div><span style="min-width:90px">GSR / EDA</span><div class="sig-bar-wrap"><div class="sig-bar" id="b-gsr" style="background:#BA7517"></div></div><span class="ctrl-val" id="v-gsr">—</span><span class="sig-unit">μS</span></div>
+  <div class="sig-row"><div class="sig-dot" style="background:#534AB7"></div><span style="min-width:90px">Temp. periférica</span><div class="sig-bar-wrap"><div class="sig-bar" id="b-tmp" style="background:#534AB7"></div></div><span class="ctrl-val" id="v-tmp">—</span><span class="sig-unit">°C</span></div>
+  <div class="sig-row"><div class="sig-dot" style="background:#993C1D"></div><span style="min-width:90px">Lactato ISF</span><div class="sig-bar-wrap"><div class="sig-bar" id="b-lac" style="background:#993C1D"></div></div><span class="ctrl-val" id="v-lac">—</span><span class="sig-unit">mmol/L</span></div>
+  <div class="sig-row"><div class="sig-dot" style="background:#0F6E56"></div><span style="min-width:90px">Na⁺ sudor</span><div class="sig-bar-wrap"><div class="sig-bar" id="b-na" style="background:#0F6E56"></div></div><span class="ctrl-val" id="v-na">—</span><span class="sig-unit">mM</span></div>
+</div>
+
+<!-- PIPELINE LAB -->
+<div class="sim-card">
+  <div class="sim-label" style="font-weight:500;font-size:13px;margin-bottom:6px">Pipeline LAB — última lectura de laboratorio</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+    <div><div class="sim-label">HbA1c</div><span class="sim-val" id="v-hba1c">—</span><span class="sim-unit">%</span></div>
+    <div><div class="sim-label">Glucosa ayunas</div><span class="sim-val" id="v-glu0">—</span><span class="sim-unit">mg/dL</span></div>
+    <div><div class="sim-label">Insulina (HOMA-IR)</div><span class="sim-val" id="v-homa">—</span><span class="sim-unit">UI/mL</span></div>
+    <div><div class="sim-label">PCR-us</div><span class="sim-val" id="v-crp">—</span><span class="sim-unit">mg/L</span></div>
+    <div><div class="sim-label">TSH</div><span class="sim-val" id="v-tsh">—</span><span class="sim-unit">mUI/L</span></div>
+    <div><div class="sim-label">TFG</div><span class="sim-val" id="v-gfr">—</span><span class="sim-unit">mL/min</span></div>
+  </div>
+  <div style="margin-top:8px;font-size:11px;color:var(--color-text-tertiary)">
+    DQI WEAR: <span class="dqi-pill" id="dqi-w">—</span>&nbsp;&nbsp;
+    DQI LAB: <span class="dqi-pill" id="dqi-l">—</span>
+  </div>
+</div>
+
+<!-- TENSOR VISUALIZACIÓN -->
+<div class="sim-card">
+  <div class="sim-label" style="font-weight:500;font-size:13px;margin-bottom:6px">Tensor fusionado [288 pasos × 12 características] — mapa de calor últimas 6 horas</div>
+  <canvas id="tensor-canvas" height="90"></canvas>
+</div>
+
+<!-- OUTPUT: DSS + RTM + CATÁLOGO -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+  <div class="sim-card" style="margin:0">
+    <div class="sim-label">Índice DSS</div>
+    <div style="display:flex;align-items:baseline;gap:6px">
+      <span class="sim-val" id="dss-val" style="font-size:32px">—</span>
+      <span class="sim-unit">/ 100</span>
+    </div>
+    <div style="margin-top:6px;height:6px;background:linear-gradient(to right,#3B6D11,#0F6E56,#BA7517,#A32D2D);border-radius:3px;position:relative">
+      <div id="dss-marker" style="position:absolute;top:-3px;width:2px;height:12px;background:var(--color-text-primary);border-radius:1px;transition:left 0.5s;left:0%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--color-text-tertiary);margin-top:2px"><span>0</span><span>50</span><span>76</span><span>90</span><span>100</span></div>
+  </div>
+  <div class="sim-card" style="margin:0">
+    <div class="sim-label">Risk Trend Marker (RTM)</div>
+    <div style="margin:4px 0"><span class="zone" id="rtm-zone">—</span></div>
+    <div class="sim-label" style="margin-top:6px">Velocidad de riesgo</div>
+    <div style="display:flex;align-items:baseline;gap:4px">
+      <span class="sim-val" id="rtm-vel" style="font-size:20px">—</span>
+      <span class="sim-unit">pts/semana</span>
+    </div>
+  </div>
+</div>
+
+<!-- CATÁLOGO DIFERENCIAL -->
+<div class="sim-card">
+  <div class="sim-label" style="font-weight:500;font-size:13px;margin-bottom:8px">Catálogo diferencial — probabilidades por patología</div>
+  <div id="catalogo"></div>
+</div>
+
+<!-- GRÁFICO TEMPORAL DSS -->
+<div class="sim-card">
+  <div class="tab-row">
+    <button class="tab active" onclick="setTab('dss')">Trayectoria DSS</button>
+    <button class="tab" onclick="setTab('glc')">Glucosa CGM</button>
+    <button class="tab" onclick="setTab('hrv')">HRV</button>
+    <button class="tab" onclick="setTab('lab')">Lab longitudinal</button>
+  </div>
+  <canvas id="main-chart" height="140"></canvas>
+</div>
+
+<div style="font-size:11px;color:var(--color-text-tertiary);text-align:center;padding-top:4px">
+  Datos 100% sintéticos — generados proceduralmente para demostración del pipeline. Sin datos clínicos reales.
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+let mainChart = null;
+let activeTab = 'dss';
+let history = {dss:[], glc:[], hrv:[], lab:[]};
+let ticks = 0;
+let animFrame = null;
+
+function rng(seed){
+  let s = seed;
+  return function(){s=(s*1664525+1013904223)%4294967296;return s/4294967296;};
+}
+
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function lerp(a,b,t){return a+(b-a)*t;}
+function round1(v){return Math.round(v*10)/10;}
+function round2(v){return Math.round(v*100)/100;}
+
+function getParams(){
+  return {
+    ir: parseInt(document.getElementById('ir').value)/100,
+    stress: parseInt(document.getElementById('stress').value)/100,
+    inflam: parseInt(document.getElementById('inflam').value)/100,
+    labcov: parseInt(document.getElementById('labcov').value)/100,
+    wq: parseInt(document.getElementById('wq').value)/100,
+  };
+}
+
+function computeSignals(p, t){
+  const r = rng(Math.floor(t*7+1234));
+  const noise = ()=>(r()-0.5)*0.08;
+
+  const hrv = clamp(lerp(65,22, p.ir*0.6+p.stress*0.5)+noise()*20, 14, 85);
+  const glc = clamp(lerp(88,148, p.ir*0.7+p.inflam*0.2)+Math.sin(t*0.8)*8+noise()*10, 72, 200);
+  const gsr = clamp(lerp(1.2,12, p.stress*0.7+p.ir*0.2)+noise()*2, 0.5, 18);
+  const tmp = clamp(lerp(36.8,35.8, p.stress*0.4)+noise()*0.3, 35.2, 37.5);
+  const lac = clamp(lerp(0.9,3.8, p.ir*0.5+p.inflam*0.4)+noise()*0.5, 0.5, 5.5);
+  const na  = clamp(lerp(28,72, p.stress*0.5+p.ir*0.3)+noise()*8, 15, 95);
+
+  return {hrv,glc,gsr,tmp,lac,na};
+}
+
+function computeLab(p){
+  const hba1c = round1(clamp(lerp(5.1,6.8, p.ir*0.8+p.inflam*0.2), 4.8, 7.5));
+  const glu0  = Math.round(clamp(lerp(84,118, p.ir*0.9), 70, 140));
+  const homa  = round1(clamp(lerp(0.9,4.8, p.ir*0.85+p.inflam*0.1), 0.5, 6.5));
+  const crp   = round2(clamp(lerp(0.3,6.8, p.inflam*0.85+p.stress*0.15), 0.1, 10));
+  const tsh   = round1(clamp(lerp(1.8,5.4, p.stress*0.4+p.inflam*0.3), 0.5, 8));
+  const gfr   = Math.round(clamp(lerp(98,64, p.ir*0.3+p.inflam*0.4), 45, 110));
+  return {hba1c, glu0, homa, crp, tsh, gfr};
+}
+
+function computeDSS(sig, lab, p){
+  const wHRV   = clamp((65-sig.hrv)/50*100, 0, 100)*0.28;
+  const wGLC   = clamp((sig.glc-88)/100*100, 0, 100)*0.22;
+  const wGSR   = clamp((sig.gsr-1.2)/12*100, 0, 100)*0.12;
+  const wLAC   = clamp((sig.lac-0.9)/4*100, 0, 100)*0.10;
+  const wNa    = clamp((sig.na-28)/60*100, 0, 100)*0.08;
+  const wLAB   = clamp((lab.hba1c-5.1)/1.7*100+(lab.crp-0.3)/6.5*100, 0, 200)/2*0.20;
+  const raw    = wHRV+wGLC+wGSR+wLAC+wNa+wLAB;
+  const dqi_w  = p.wq;
+  const dqi_l  = p.labcov;
+  const penalty= clamp((1-(dqi_w*0.6+dqi_l*0.4))*30, 0, 20);
+  return clamp(Math.round(raw+penalty), 0, 100);
+}
+
+function rtmZone(dss, vel){
+  if(dss>90) return {label:'Evento agudo', cls:'z5'};
+  if(dss>76||vel>1.5) return {label:'Alerta preclínica', cls:'z4'};
+  if(dss>65||vel>0.5) return {label:'Tendencia significativa', cls:'z3'};
+  if(dss>50||vel>0.1) return {label:'Tendencia leve', cls:'z2'};
+  return {label:'Riesgo basal estable', cls:'z1'};
+}
+
+function catalogoItems(p, lab){
+  return [
+    {name:'Resistencia a insulina',  prob: clamp(p.ir*0.85+p.inflam*0.1+p.stress*0.05, 0,1)},
+    {name:'Síndrome metabólico',     prob: clamp(p.ir*0.6+p.inflam*0.3+p.stress*0.1, 0,1)},
+    {name:'Diabetes tipo 2 precl.',  prob: clamp((lab.hba1c-5.1)/1.4*0.7+p.ir*0.3, 0,1)},
+    {name:'Inflamación sistémica',   prob: clamp(p.inflam*0.9+p.stress*0.1, 0,1)},
+    {name:'Hipotiroidismo subclín.', prob: clamp(p.stress*0.4+p.inflam*0.2, 0,1)},
+    {name:'ERC G1-G2',               prob: clamp((98-Math.round(clamp(lerp(98,64,p.ir*0.3+p.inflam*0.4),45,110)))/40*0.7+p.inflam*0.3, 0,1)},
+    {name:'EHNA / NASH',             prob: clamp(p.ir*0.5+p.inflam*0.4, 0,1)},
+    {name:'Dislipidemia aterogénica',prob: clamp(p.ir*0.6+p.inflam*0.3, 0,1)},
+  ].sort((a,b)=>b.prob-a.prob);
+}
+
+function colorForProb(p){
+  if(p>0.65) return '#E24B4A';
+  if(p>0.40) return '#BA7517';
+  if(p>0.20) return '#1D9E75';
+  return '#888780';
+}
+
+function drawTensor(ctx, sig, p){
+  const W = ctx.canvas.clientWidth||400;
+  const H = 90;
+  ctx.canvas.width = W*2; ctx.canvas.height = H*2;
+  ctx.scale(2,2);
+  const cols = 72; const rows = 12;
+  const cw = W/cols; const rh = H/rows;
+  const labels = ['HRV','Glucosa','GSR','Temp','Lactato','Na⁺','HbA1c','PCR-us','TSH','TFG','DSS','DQI'];
+  const baseVals = [
+    sig.hrv/85, sig.glc/200, sig.gsr/18, (sig.tmp-35)/2.5,
+    sig.lac/5.5, sig.na/95, 1, 1, 1, 1, 1, p.wq
+  ];
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const timeDecay = c/cols;
+      const noise = (Math.sin(r*7.3+c*1.9)*0.1+Math.cos(r*2.1+c*5.7)*0.08);
+      let val = clamp(baseVals[r]+noise+timeDecay*0.05, 0, 1);
+      if(r>=6&&c<60) val *= p.labcov;
+      const intensity = val;
+      let R,G,B;
+      if(intensity>0.65){R=228;G=75;B=74;}
+      else if(intensity>0.40){R=186;G=117;B=23;}
+      else if(intensity>0.15){R=29;G=158;B=117;}
+      else{R=136;G=135;B=128;}
+      ctx.fillStyle=`rgba(${R},${G},${B},${0.3+intensity*0.7})`;
+      ctx.fillRect(c*cw, r*rh, cw-0.5, rh-0.5);
+    }
+    ctx.fillStyle='rgba(0,0,0,0.55)';
+    ctx.font='8px Arial';
+    ctx.fillText(labels[r], 2, r*rh+rh*0.65);
+  }
+}
+
+function buildMainChart(labels, data, color, label){
+  const ctx2 = document.getElementById('main-chart').getContext('2d');
+  if(mainChart) mainChart.destroy();
+  mainChart = new Chart(ctx2,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[{
+        label,
+        data,
+        borderColor: color,
+        backgroundColor: color+'22',
+        borderWidth:1.5,
+        pointRadius:0,
+        tension:0.35,
+        fill:true,
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{font:{size:10},maxTicksLimit:8},grid:{color:'rgba(0,0,0,0.05)'}},
+        y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}}
+      },
+      animation:{duration:0}
+    }
+  });
+}
+
+function setTab(t){
+  activeTab=t;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(t==='dss'?'dss':t==='glc'?'gluco':t==='hrv'?'hrv':'lab')));
+  renderChart();
+}
+
+function renderChart(){
+  const H = history;
+  const len = H.dss.length;
+  const labels = Array.from({length:len},(_,i)=>i%6===0?`-${(len-1-i)*5}min`:'');
+  if(activeTab==='dss') buildMainChart(labels, H.dss, '#534AB7','DSS');
+  else if(activeTab==='glc') buildMainChart(labels, H.glc, '#185FA5','Glucosa mg/dL');
+  else if(activeTab==='hrv') buildMainChart(labels, H.hrv, '#1D9E75','HRV ms');
+  else buildMainChart(labels.slice(-12), H.lab.slice(-12), '#BA7517','HbA1c %');
+}
+
+function update(){
+  const p = getParams();
+  document.getElementById('ir-v').textContent=Math.round(p.ir*100)+'%';
+  document.getElementById('stress-v').textContent=Math.round(p.stress*100)+'%';
+  document.getElementById('inflam-v').textContent=Math.round(p.inflam*100)+'%';
+  document.getElementById('labcov-v').textContent=Math.round(p.labcov*100)+'%';
+  document.getElementById('wq-v').textContent=Math.round(p.wq*100)+'%';
+
+  ticks++;
+  const sig = computeSignals(p, ticks*0.1);
+  const lab = computeLab(p);
+
+  // Update signal bars
+  const set=(id,val,max)=>{
+    document.getElementById('b-'+id).style.width=clamp(val/max*100,2,100)+'%';
+    document.getElementById('v-'+id).textContent=typeof val==='number'&&val%1!==0?round1(val):Math.round(val);
+  };
+  set('hrv',sig.hrv,85); set('glc',sig.glc,200); set('gsr',sig.gsr,18);
+  set('tmp',sig.tmp,37.5); set('lac',sig.lac,5.5); set('na',sig.na,95);
+
+  // Lab values
+  document.getElementById('v-hba1c').textContent=lab.hba1c;
+  document.getElementById('v-glu0').textContent=lab.glu0;
+  document.getElementById('v-homa').textContent=lab.homa;
+  document.getElementById('v-crp').textContent=lab.crp;
+  document.getElementById('v-tsh').textContent=lab.tsh;
+  document.getElementById('v-gfr').textContent=lab.gfr;
+
+  // DQI
+  const dqiW = Math.round(p.wq*100);
+  const dqiL = Math.round(p.labcov*100);
+  const dqiWEl=document.getElementById('dqi-w');
+  const dqiLEl=document.getElementById('dqi-l');
+  dqiWEl.textContent='WEAR '+dqiW+'%';
+  dqiLEl.textContent='LAB '+dqiL+'%';
+  dqiWEl.style.background=dqiW<70?'var(--color-background-danger)':'var(--color-background-success)';
+  dqiWEl.style.color=dqiW<70?'var(--color-text-danger)':'var(--color-text-success)';
+  dqiLEl.style.background=dqiL<70?'var(--color-background-danger)':'var(--color-background-success)';
+  dqiLEl.style.color=dqiL<70?'var(--color-text-danger)':'var(--color-text-success)';
+
+  // DSS
+  const dss = computeDSS(sig, lab, p);
+  document.getElementById('dss-val').textContent=dss;
+  document.getElementById('dss-marker').style.left=dss+'%';
+
+  // RTM
+  history.dss.push(dss);
+  history.glc.push(Math.round(sig.glc));
+  history.hrv.push(Math.round(sig.hrv));
+  history.lab.push(lab.hba1c);
+  if(history.dss.length>72){['dss','glc','hrv','lab'].forEach(k=>history[k].shift());}
+  const recent=history.dss.slice(-6);
+  const vel=recent.length>1?round1((recent[recent.length-1]-recent[0])/recent.length*6):0;
+  const zone=rtmZone(dss,vel);
+  const zoneEl=document.getElementById('rtm-zone');
+  zoneEl.textContent=zone.label;
+  zoneEl.className='zone '+zone.cls;
+  document.getElementById('rtm-vel').textContent=(vel>=0?'+':'')+vel;
+
+  // Tensor
+  const tCtx=document.getElementById('tensor-canvas').getContext('2d');
+  drawTensor(tCtx,sig,p);
+
+  // Catálogo
+  const items=catalogoItems(p,lab);
+  document.getElementById('catalogo').innerHTML=items.map(it=>{
+    const pct=Math.round(it.prob*100);
+    const col=colorForProb(it.prob);
+    return `<div class="sig-row"><span style="min-width:170px">${it.name}</span><div class="sig-bar-wrap"><div class="sig-bar" style="width:${pct}%;background:${col}"></div></div><span class="ctrl-val" style="color:${col}">${pct}%</span></div>`;
+  }).join('');
+
+  renderChart();
+}
+
+// Loop de animación
+function tick(){
+  update();
+  animFrame=setTimeout(tick,1200);
+}
+
+document.querySelectorAll('.tab').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const map={'Trayectoria DSS':'dss','Glucosa CGM':'glc','HRV':'hrv','Lab longitudinal':'lab'};
+    const t=map[b.textContent];
+    if(t){activeTab=t;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));renderChart();}
+  });
+});
+
+update();
+tick();
+</script>
